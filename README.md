@@ -21,10 +21,13 @@ Here we forecast a 'noisy sine' curve:
 ```python
 	import numpy as np
 	import matplotlib as mp
+	import datagami
 
 	t = np.arange(1:100)
 	x = 0.1*t + np.sin(t/10) * np.random(t.size)
-	f = Datagami.forecast(x)
+
+	dg = datagami()
+	f = dg.forecast(x)
 
 	mp.plot(t,x,f)
 ```
