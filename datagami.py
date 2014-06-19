@@ -30,13 +30,15 @@ class Datagami:
 				break
 			elif resp['status'] == 'FAIL':
 				print resp
-				raise requests.exceptions.RequestException('Sorry forecast job failed')
+				raise requests.exceptions.RequestException('Sorry, forecast job failed')
 			counter += 1
 			s += inc
 			if s > 5 and s < 20:
 				inc = 3
-			if counter > 100:
-				raise requests.exceptions.Timeout('Sorry forecast job never completed')
+			elif s > 20:
+				inc = 5
+			if counter > 1000:
+				raise requests.exceptions.Timeout('Sorry, forecast job never completed')
 
 		return resp
 
@@ -142,9 +144,7 @@ class TimeSeries1D(Datagami):
 		
 		# poll for results
 		r_auto = r.json()
-		print r_auto
 		resp = self.poll(r_auto['job_url'])
-		print resp
 		result = requests.get(self.url + r_auto['url'])
 
 		print result.json()
