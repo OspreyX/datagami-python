@@ -97,7 +97,7 @@ class TimeSeries1D(Datagami):
 	def forecast(self, kernel='SE', steps_ahead=10):
 		'''
 		Fits a Gaussian Process model with the supplied kernel to input array x.  
-		Returns a dictionary of resutls: fit, fit_var, pred, pred_var.
+		Returns a dictionary of results: fit, fit_var, pred, pred_var.
 		See API documentation for details.
 		'''
 		# validation
@@ -108,20 +108,28 @@ class TimeSeries1D(Datagami):
 		params_dict = {'data_key': self.data_key, 'kernel':kernel, 'steps_ahead':n }
 		r = requests.post(self.forecast_url, data=params_dict)
 		r.raise_for_status()
-		r_forecast = r.json()
 
 		# poll for results
-		resp = self.poll(r_forecast['job_url'])
-		result = requests.get(r_forecast['url'])
+		r_forecast = r.json()
+		result = self.poll(r_forecast['url'])
+
+		# clean up object for return to user
+		result.pop('job_id', None)
+		result.pop('status', None)
+		result.pop('data_key', None)
+		result.pop('model_key', None)
+		result.pop('type', None)
+		result.pop('steps_ahead', None)
 
 		return result
 
 
-	def auto(self, x, kernel_list=None, out_of_sample_size=10):
+	def auto(self, kernel_list=None, out_of_sample_size=10):
 		'''
 		Tries to find the best Gaussian Process model for input array x, by training 
 		a collection of models on a reduced data set, x[:-out_of_sample_size] in python notation,
 		and ranking them by the accuracy of their predictions on x[:out_of_sample_size].
+		Returns a list of dictionaries.
 		'''
 		# validation
 		n = self.validatePositiveInteger(out_of_sample_size)
@@ -136,9 +144,22 @@ class TimeSeries1D(Datagami):
 		
 		# poll for results
 		r_auto = r.json()
-		resp = self.poll(r_auto['job_url'])
-		result = requests.get(self.url + r_auto['url'])
+		result = self.poll(r_auto['url'])
 
-		print result.json()
-		return result.json()
+		# clean up object for return to user
+		result.pop('job_id', None)
+		result.pop('status', None)
+		result.pop('data_key', None)
+		result.pop('model_keys', None)
+		result.pop('meta_key', None)
+		result.pop('oos_window', None)
+		result.pop('type', None)
+
+		# turn results into a sorted list
+		result_list = []
+		for k,v in result.iteritems():
+			v['kernel'] = k
+			result_list.append(v)
+
+		return result_list
 
