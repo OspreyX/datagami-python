@@ -75,24 +75,16 @@ class TimeSeries1D(Datagami):
 	'''
 	Class to handle all 1D timeseries models
 	'''
-	def __init__(self, username='demo', token=''):
+	def __init__(self, x, username='demo', token=''):
 		Datagami.__init__(self, username, token)
 		self.data_url = self.url + '/v1/data'
 		self.forecast_url = self.url + '/v1/timeseries/1D/forecast'
 		self.auto_url = self.url + '/v1/timeseries/1D/auto'
 
-	
-	def forecast(self, x, kernel='SE', steps_ahead=10):
-		'''
-		Fits a Gaussian Process model with the supplied kernel to input array x.  
-		Returns a dictionary of resutls: fit, fit_var, pred, pred_var.
-		See API documentation for details.
-		'''
-		# validation
+		# sanity check on data array
 		y = self.validateArray(x)
-		n = self.validatePositiveInteger(steps_ahead)
 
-		# send timeseries data to the API
+		# upload timeseries data to the API
 		data_json = json.dumps(y)
 		r = requests.post(self.data_url, data={'data':data_json})
 		r.raise_for_status()
@@ -101,6 +93,17 @@ class TimeSeries1D(Datagami):
 			raise requests.exceptions.RequestException(r_data)
 		self.data_key = r_data['data_key']
 		
+	
+	def forecast(self, kernel='SE', steps_ahead=10):
+		'''
+		Fits a Gaussian Process model with the supplied kernel to input array x.  
+		Returns a dictionary of resutls: fit, fit_var, pred, pred_var.
+		See API documentation for details.
+		'''
+		# validation
+		n = self.validatePositiveInteger(steps_ahead)
+		assert(type(kernel) is str or type(kernel) is unicode)
+
 		# post to forecast endpoint
 		params_dict = {'data_key': self.data_key, 'kernel':kernel, 'steps_ahead':n }
 		r = requests.post(self.forecast_url, data=params_dict)
@@ -121,20 +124,9 @@ class TimeSeries1D(Datagami):
 		and ranking them by the accuracy of their predictions on x[:out_of_sample_size].
 		'''
 		# validation
-		y = self.validateArray(x)
 		n = self.validatePositiveInteger(out_of_sample_size)
 		assert type(kernel_list) is list, "ValueError: kernel_list must be a python list"
 		assert all(type(k) == str for k in kernel_list), "ValueError: kernel_list must be a python list of strings"
-
-		# send timeseries data to the API
-		data_json = json.dumps(y)
-		r = requests.post(self.data_url, data={'data':data_json})
-		r.raise_for_status()
-
-		r_data = r.json()
-		if 'data_key' not in r_data:
-			raise requests.exceptions.RequestException(r_data)
-		self.data_key = r_data['data_key']
 		
 		params_dict = {'data_key': self.data_key, 'kernel_list': json.dumps(kernel_list), 'oos_window':n }
 
