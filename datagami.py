@@ -83,12 +83,12 @@ class Datagami:
 
 
 	def validateArray1D(self, x):
-		'''Sanity checks on 1D timeseries. Must be a python list of floats or a 1D numpy array.'''
+		'''Sanity checks on 1D timeseries. Must be a python list of floats or a numpy array.'''
 		if type(x) is numpy.ndarray:
 			self.data_type = numpy.ndarray
 			if len(x.shape) != 1:
 				raise ValueError('Not a 1D arrray')
-			return x.tolist()
+			return x.to_list()
 		elif type(x) is list:
 			self.data_type = list
 			return map(float, x)
@@ -170,8 +170,8 @@ class TimeSeries1D(Datagami):
 		result.pop('type', None)
 		result.pop('steps_ahead', None)
 
-		# return numpy if input was numpy
-		if self.data_type == "numpy":
+		# return numpy if input was numpy 
+		if self.data_type is numpy.array :
 			for a in ['fit','fit_var','pred','pred_var']:
 				result[a] = numpy.array(result[a])
 
@@ -214,7 +214,7 @@ class TimeSeries1D(Datagami):
 		result_list = []
 		for k,v in result.iteritems():
 			v['kernel'] = k
-			if self.data_type == "numpy":
+			if self.data_type is numpy.array:
 				for a in ['fit','fit_var','pred','pred_var']:
 					v[a] = numpy.array(v[a])
 			result_list.append(v)
@@ -254,17 +254,5 @@ def summarise(res):
 	'''
 	Extracts list of kernel, prediction_error pairs from results of auto1D 
 	'''
-	 return [(a['kernel'],a['prediction_error']) for a in res]
-
-def forecast(x, k, n):
-	ts1d = False
-	if type(x) is numpy.ndarray:
-		if len(x.shape) == 1:
-			ts1d = True
-	elif type(x) is list:
-		if all(len(a) for a in x) == 1:
-			ts1d = True
-	if ts1d:
-		f = forecast1D(x, k, n)
-		return f
+	return [(a['kernel'],a['prediction_error']) for a in res]
 
