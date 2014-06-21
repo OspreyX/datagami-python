@@ -88,7 +88,7 @@ class Datagami:
 			self.data_type = numpy.ndarray
 			if len(x.shape) != 1:
 				raise ValueError('Not a 1D arrray')
-			return x.to_list()
+			return x.tolist()
 		elif type(x) is list:
 			self.data_type = list
 			return map(float, x)
