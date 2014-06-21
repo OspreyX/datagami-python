@@ -10,26 +10,35 @@ Basic wrapper to access the Datagami machine learning API.  There are three main
 
 For some types of model one or more of these steps are combined in convenience methods:
 
-* forecast - train a model and return a prediction
-* auto - train many models and retun a list ordered by accuracy of their forecasts 
+* forecast1D - train a model and return a prediction
+* auto1D - train many models and retun a list ordered by accuracy of their forecasts 
 
 Simple Example
 ==============
 
-Here we forecast a 'noisy sine' curve:
+You can forecast a 'noisy sine' curve in a couple of lines. 
 
 ```python
-	import numpy as np
-	import matplotlib as mp
-	import datagami
+import numpy as np
+import datagami
 
-	t = np.arange(1:100)
-	x = 0.1*t + np.sin(t/10) * np.random(t.size)
+x = np.arange(100)
+y = 0.1*t + np.sin(t/3) + np.random.normal(t.size)
 
-	dg = datagami()
-	f = dg.forecast(x)
+f = datagami.forecast1D(y[-10:], kernel='SE', n=10)
+```
 
-	mp.plot(t,x,f)
+And now we spend 100 lines plotting the results:
+```python
+import pandas
+from ggplot import *
+
+df = pandas.DataFrame({'t': t, 'x': x, 'fit': f['fit']})
+
+ggplot(aes(x='t',y='x'), data=df) + \
+    geom_point(color='lightblue') + \
+    geom_line(x=t,y=f['fit']) 
+
 ```
 
 
