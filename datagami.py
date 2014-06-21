@@ -1,19 +1,53 @@
 
-import numpy as np
+import numpy
 import json
 import requests
 import time
 
 
-# need to connect
+# TODO: authentication
 
 class Datagami:
 
 	def __init__(self, username='demo', token=''):
 		'''
-		Create Datagami object which contains connection to API server
+		Create a Datagami object which contains connection to API server
 		'''
 		self.base_url = 'http://localhost:8888'
+		self.data_url = self.base_url + '/v1/data'
+		self.model_url = self.base_url + '/v1/model'
+
+
+	def getData(self):
+		'''
+		Retrieve previously uploaded data
+		'''
+		try:
+			self.data_key
+		except AttributeError:
+			raise ValueError('data not defined')
+		r = requests.get(self.data_url + '/' + self.data_key)
+		r.raise_for_status()
+		data = r.json()['data']
+		if self.data_type is numpy.ndarray:
+			data = numpy.array(data)
+		return data
+
+	def getModel(self):
+		'''
+		Retrieve previously trained model
+		'''
+		try:
+			self.model_key
+		except AttributeError:
+			raise ValueError('model not defined')
+		r = requests.get(self.model_url + '/' + self.model_key)
+		r.raise_for_status()
+		data = r.json()['data']
+		if self.data_type is numpy.ndarray:
+			data = numpy.array(data)
+		return data
+
 
 	def poll(self, url):
 		'''
@@ -43,16 +77,15 @@ class Datagami:
 		return resp
 
 
-
-	def validateArray(self, x):
-		'''Sanity checks on timeseries. Must be a python list of floats or a 1D numpy array.'''
-		if type(x) is np.ndarray:
-			self.data_type = "numpy"
+	def validateArray1D(self, x):
+		'''Sanity checks on 1D timeseries. Must be a python list of floats or a 1D numpy array.'''
+		if type(x) is numpy.ndarray:
+			self.data_type = numpy.ndarray
 			if len(x.shape) != 1:
 				raise ValueError('Not a 1D arrray')
 			return x.tolist()
 		elif type(x) is list:
-			self.data_type = None
+			self.data_type = list
 			return map(float, x)
 		else:
 			raise ValueError('Error: x must be a numpy array or a python list of floats')
@@ -75,19 +108,24 @@ class Datagami:
 
 class TimeSeries1D(Datagami):
 	'''
-	Class to handle all 1D timeseries models
+	Class to handle all 1D timeseries models. Instances contain details about the API connection
+	and references to the uploaded data.  Methods on this object are: getData, getModel, forecast, and auto.
+
 	'''
 	def __init__(self, x, username='demo', token=''):
+		'''
+		Create a TimeSeries1D object from input data x. 
+		Currently, x must be a numpy array or a python list of floats.
+		'''
 		# authentication is handeld in parent's constructor
 		Datagami.__init__(self, username, token)
 
-		# define the endpoints 
-		self.data_url = self.base_url + '/v1/data'
+		# define specific endpoints 
 		self.forecast_url = self.base_url + '/v1/timeseries/1D/forecast'
 		self.auto_url = self.base_url + '/v1/timeseries/1D/auto'
 
-		# sanity check on data array
-		y = self.validateArray(x)
+		# sanity check on data array, converts numpy to python list
+		y = self.validateArray1D(x)
 
 		# upload timeseries data to the API
 		data_json = json.dumps(y)
@@ -118,6 +156,8 @@ class TimeSeries1D(Datagami):
 		r_forecast = r.json()
 		result = self.poll(r_forecast['url'])
 
+		self.model_key = result['model_key']
+
 		# clean up object for return to user
 		result.pop('job_id', None)
 		result.pop('status', None)
@@ -129,7 +169,7 @@ class TimeSeries1D(Datagami):
 		# return numpy if input was numpy
 		if self.data_type == "numpy":
 			for a in ['fit','fit_var','pred','pred_var']:
-				result[a] = np.array(result[a])
+				result[a] = numpy.array(result[a])
 
 		return result
 
@@ -159,6 +199,12 @@ class TimeSeries1D(Datagami):
 		r_auto = r.json()
 		result = self.poll(r_auto['url'])
 
+		# store references to cloud objects
+		# NOTE: we store the meta_key here as this object's model_key 
+		self.model_key = result['meta_key']
+		self.job_id = result['job_id']
+		self.model_keys = result['model_keys']
+
 		# clean up object for return to user
 		for k in ['job_id', 'status', 'data_key', 'model_keys', 'meta_key', 'oos_window', 'type']:
 			result.pop(k, None)
@@ -169,7 +215,7 @@ class TimeSeries1D(Datagami):
 			v['kernel'] = k
 			if self.data_type == "numpy":
 				for a in ['fit','fit_var','pred','pred_var']:
-					v[a] = np.array(v[a])
+					v[a] = numpy.array(v[a])
 			result_list.append(v)
 
 		result_list.sort(key=lambda x: x['prediction_error'])
