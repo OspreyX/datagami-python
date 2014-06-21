@@ -192,10 +192,7 @@ class TimeSeries1D(Datagami):
 		
 		params_dict = {'data_key': self.data_key, 'kernel_list': json.dumps(kernel_list), 'oos_window':n }
 
-		print params_dict
-
 		# post to the auto endpoint
-		print 'auto_url', self.auto_url
 		r = requests.post(self.auto_url, data=params_dict)
 		r.raise_for_status()
 		
@@ -253,6 +250,21 @@ def auto1D(x, kl=['SE','RQ','SE + RQ'], n=10):
 	f = DG.auto(kl, n)
 	return f
 
+def summarise(res):
+	'''
+	Extracts list of kernel, prediction_error pairs from results of auto1D 
+	'''
+	 return [(a['kernel'],a['prediction_error']) for a in res]
 
-
+def forecast(x, k, n):
+	ts1d = False
+	if type(x) is numpy.ndarray:
+		if len(x.shape) == 1:
+			ts1d = True
+	elif type(x) is list:
+		if all(len(a) for a in x) == 1:
+			ts1d = True
+	if ts1d:
+		f = forecast1D(x, k, n)
+		return f
 
