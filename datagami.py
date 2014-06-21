@@ -6,6 +6,9 @@ import time
 
 
 # TODO: authentication
+# ----------------------------------------------------------------------------------------
+# parent class
+# ----------------------------------------------------------------------------------------
 
 class Datagami:
 
@@ -16,6 +19,8 @@ class Datagami:
 		self.base_url = 'http://localhost:8888'
 		self.data_url = self.base_url + '/v1/data'
 		self.model_url = self.base_url + '/v1/model'
+		self.forecast_url = self.base_url + '/v1/timeseries/1D/forecast'
+		self.auto_url = self.base_url + '/v1/timeseries/1D/auto'
 
 
 	def getData(self):
@@ -104,6 +109,9 @@ class Datagami:
 		else:
 			return n
 
+# ----------------------------------------------------------------------------------------
+# endpoint specific class
+# ----------------------------------------------------------------------------------------
 
 
 class TimeSeries1D(Datagami):
@@ -119,10 +127,6 @@ class TimeSeries1D(Datagami):
 		'''
 		# authentication is handeld in parent's constructor
 		Datagami.__init__(self, username, token)
-
-		# define specific endpoints 
-		self.forecast_url = self.base_url + '/v1/timeseries/1D/forecast'
-		self.auto_url = self.base_url + '/v1/timeseries/1D/auto'
 
 		# sanity check on data array, converts numpy to python list
 		y = self.validateArray1D(x)
@@ -221,4 +225,34 @@ class TimeSeries1D(Datagami):
 		result_list.sort(key=lambda x: x['prediction_error'])
 
 		return result_list
+
+
+
+# ----------------------------------------------------------------------------------------
+#  convenience methods 
+# ----------------------------------------------------------------------------------------
+
+# TODO: authentication
+
+def forecast1D(x, k='SE', n=10):
+	'''
+	Forecast the 1D timeseries x for n steps ahead, using kernel k.
+	Currently, x must be a numpy array or a python list of floats.
+	'''
+	DG = TimeSeries1D(x)
+	f = DG.forecast(k,n)
+	return f
+
+def auto1D(x, kl=['SE','RQ','SE + RQ'], n=10):
+	'''
+	Train models with kernels in kl on timeseries x.  Returns a list of models, ordered
+	by prediction accuracy on last n values of x.  
+	Currently, x must be a numpy array or a python list of floats.
+	'''
+	DG = TimeSeries1D(x)
+	f = DG.auto(kl, n)
+	return f
+
+
+
 
