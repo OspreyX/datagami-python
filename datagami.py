@@ -4,6 +4,7 @@ import json
 import requests
 import time
 
+VERSION = '1.0.1'
 
 # TODO: authentication
 # ----------------------------------------------------------------------------------------
@@ -65,6 +66,26 @@ class Datagami:
 				raise requests.exceptions.Timeout('Sorry, job never completed')
 
 		return job_done
+
+	def poll_retrieve(self, job):
+		'''
+		Takes object returned by initial job submission, polls the jobs endpoint
+		until the calculation has finished, then retrieves the results object
+		'''
+		# store some relevant details
+		self.job_id = job['job_id']
+		self.model_key = job['model_key']
+
+		# poll for results
+		job_flag = self.poll(job['job_url'])
+		assert job_flag is True   # if poll() returned, it should have returned true
+
+		# get model details
+		r = requests.get(self.base_url + job['model_url'])
+		r.raise_for_status()
+		result = r.json()
+
+		return result
 
 
 	def validateArray1D(self, x):
@@ -141,18 +162,8 @@ class TimeSeries1D(Datagami):
 		r = requests.post(self.forecast_url, data=params_dict)
 		r.raise_for_status()
 
-		job = r.json()
-		self.job_id = job['job_id']
-		self.model_key = job['model_key']
-
-		# poll for results
-		job_flag = self.poll(job['job_url'])
-		assert job_flag is True   # if poll() returned, it should have returned true
-
-		# get model details
-		r = requests.get(r['model_url'])
-		r.raise_for_status()
-		result = r.json()
+		# get results from server, synchronous, ie poll and wait
+		result = self.poll_retrieve(r.json())
 
 		# clean up object for return to user
 		result.pop('job_id', None)
@@ -188,30 +199,22 @@ class TimeSeries1D(Datagami):
 		r = requests.post(self.auto_url, data=params_dict)
 		r.raise_for_status()
 
-		job = r.json()
-		self.job_id = job['job_id']
-		self.model_key = job['model_key']   # Note: this is meta_key in the server
-
-		# poll for results
-		job_flag = self.poll(job['job_url'])
-		assert job_flag is True   # if poll() returned, it should have returned true
-
-		# get model details
-		r = requests.get(r['model_url'])
-		r.raise_for_status()
-		result = r.json()
+		# get results from server, synchronous, ie poll and wait
+		result = self.poll_retrieve(r.json())
 		
 		# store references to server-side objects
 		self.model_keys = result['model_keys']
 
 		# clean up object for return to user
-		for k in ['job_id', 'status', 'data_key', 'model_keys', 'meta_key', 'oos_window', 'type']:
+		for k in ['job_id', 'status', 'data_key', 'model_keys', 'meta_key', 'oos_window', 'type', 'message']:
 			result.pop(k, None)
 
 		# turn results into a sorted list and return numpy if input was numpy
 		result_list = []
 		for k,v in result.iteritems():
 			v['kernel'] = k
+			for x in ['type','py_kernel_name']:
+				v.pop(x, None)
 			if self.data_type is numpy.array:
 				for a in ['fit','fit_var','pred','pred_var']:
 					v[a] = numpy.array(v[a])
@@ -254,3 +257,8 @@ def summarise(res, top=5):
 	'''
 	return [(a['kernel'],a['prediction_error']) for a in res[-top:]]
 
+def version():
+	'''
+	Return the version number of this API client library.
+	'''
+	return VERSION
