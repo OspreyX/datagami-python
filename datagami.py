@@ -16,7 +16,7 @@ class Datagami:
 		'''
 		Create a Datagami object which contains connection to API server
 		'''
-		self.base_url = 'http://localhost:8888'
+		self.base_url = 'http://beta.api.datagami.net'
 		self.data_url = self.base_url + '/v1/data'
 		self.model_url = self.base_url + '/v1/model'
 		self.forecast_url = self.base_url + '/v1/timeseries/1D/forecast'
@@ -30,29 +30,13 @@ class Datagami:
 		try:
 			self.data_key
 		except AttributeError:
-			raise ValueError('data not defined')
+			raise NameError('data not defined')
 		r = requests.get(self.data_url + '/' + self.data_key)
 		r.raise_for_status()
 		data = r.json()['data']
 		if self.data_type is numpy.ndarray:
 			data = numpy.array(data)
 		return data
-
-	def getModel(self):
-		'''
-		Retrieve previously trained model
-		'''
-		try:
-			self.model_key
-		except AttributeError:
-			raise ValueError('model not defined')
-		r = requests.get(self.model_url + '/' + self.model_key)
-		r.raise_for_status()
-		data = r.json()['data']
-		if self.data_type is numpy.ndarray:
-			data = numpy.array(data)
-		return data
-
 
 	def poll(self, url):
 		'''
@@ -62,14 +46,15 @@ class Datagami:
 		s = 1 			# initial sleep interval
 		inc = 0.5  		# amount to increase interval each loop
 		while True:
-			time.sleep(s)
 			r = requests.get(self.base_url + url)
 			resp = r.json()
 			if resp['status'] == 'SUCCESS':
+				job_done = True
 				break
 			elif resp['status'] == 'FAIL':
-				print resp
-				raise requests.exceptions.RequestException('Sorry, forecast job failed')
+				job_done = False
+				raise requests.exceptions.RequestException('Sorry, job failed')
+			time.sleep(s)
 			counter += 1
 			s += inc
 			if s > 5 and s < 20:
@@ -77,9 +62,9 @@ class Datagami:
 			elif s > 20:
 				inc = 5
 			if counter > 1000:
-				raise requests.exceptions.Timeout('Sorry, forecast job never completed')
+				raise requests.exceptions.Timeout('Sorry, job never completed')
 
-		return resp
+		return job_done
 
 
 	def validateArray1D(self, x):
@@ -152,15 +137,22 @@ class TimeSeries1D(Datagami):
 		assert(type(kernel) is str or type(kernel) is unicode)
 
 		# post to forecast endpoint
-		params_dict = {'data_key': self.data_key, 'kernel':kernel, 'steps_ahead':n }
+		params_dict = {'data_key': self.data_key, 'kernel': kernel, 'steps_ahead': n }
 		r = requests.post(self.forecast_url, data=params_dict)
 		r.raise_for_status()
 
-		# poll for results
-		r_forecast = r.json()
-		result = self.poll(r_forecast['url'])
+		job = r.json()
+		self.job_id = job['job_id']
+		self.model_key = job['model_key']
 
-		self.model_key = result['model_key']
+		# poll for results
+		job_flag = self.poll(job['job_url'])
+		assert job_flag is True   # if poll() returned, it should have returned true
+
+		# get model details
+		r = requests.get(r['model_url'])
+		r.raise_for_status()
+		result = r.json()
 
 		# clean up object for return to user
 		result.pop('job_id', None)
@@ -195,15 +187,21 @@ class TimeSeries1D(Datagami):
 		# post to the auto endpoint
 		r = requests.post(self.auto_url, data=params_dict)
 		r.raise_for_status()
-		
-		# poll for results
-		r_auto = r.json()
-		result = self.poll(r_auto['url'])
 
-		# store references to cloud objects
-		# NOTE: we store the meta_key here as this object's model_key 
-		self.model_key = result['meta_key']
-		self.job_id = result['job_id']
+		job = r.json()
+		self.job_id = job['job_id']
+		self.model_key = job['model_key']   # Note: this is meta_key in the server
+
+		# poll for results
+		job_flag = self.poll(job['job_url'])
+		assert job_flag is True   # if poll() returned, it should have returned true
+
+		# get model details
+		r = requests.get(r['model_url'])
+		r.raise_for_status()
+		result = r.json()
+		
+		# store references to server-side objects
 		self.model_keys = result['model_keys']
 
 		# clean up object for return to user
@@ -242,17 +240,17 @@ def forecast1D(x, k='SE', n=10):
 
 def auto1D(x, kl=['SE','RQ','SE + RQ'], n=10):
 	'''
-	Train models with kernels in kl on timeseries x.  Returns a list of models, ordered
-	by prediction accuracy on last n values of x.  
+	Train models with kernels in kl on timeseries x. 
+	Returns a list of models, ordered by prediction accuracy on last n values of x.  
 	Currently, x must be a numpy array or a python list of floats.
 	'''
 	DG = TimeSeries1D(x)
 	f = DG.auto(kl, n)
 	return f
 
-def summarise(res):
+def summarise(res, top=5):
 	'''
 	Extracts list of kernel, prediction_error pairs from results of auto1D 
 	'''
-	return [(a['kernel'],a['prediction_error']) for a in res]
+	return [(a['kernel'],a['prediction_error']) for a in res[-top:]]
 
