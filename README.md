@@ -16,26 +16,26 @@ For some types of model one or more of these steps are combined in convenience m
 Simple Example
 ==============
 
-You can forecast a 'noisy sine' curve in a couple of lines. 
+You can forecast a 'noisy sine' curve with a single line:
 
 ```python
 import numpy as np
 import datagami
 
-x = np.arange(100)
+t = np.arange(100)
 y = 0.1*t + np.sin(t/3) + np.random.normal(t.size)
 
 f = datagami.forecast1D(y[-10:], kernel='SE', n=10)
 ```
 
-And now we spend 100 lines plotting the results:
+And we can use ggplot to display the results:
 ```python
 import pandas
 from ggplot import *
 
-df = pandas.DataFrame({'t': t, 'x': x, 'fit': f['fit']})
+df = pandas.DataFrame({'t': t, 'y': y, 'fit': f['fit']})
 
-ggplot(aes(x='t',y='x'), data=df) + \
+ggplot(aes(x='t',y='y'), data=df) + \
     geom_point(color='lightblue') + \
     geom_line(x=t,y=f['fit']) 
 
