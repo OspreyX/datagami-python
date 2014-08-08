@@ -20,9 +20,10 @@ class Datagami:
 		self.base_url = 'http://beta.api.datagami.net'
 		self.data_url = self.base_url + '/v1/data'
 		self.model_url = self.base_url + '/v1/model'
-		self.forecast_url = self.base_url + '/v1/timeseries/1D/forecast'
-		self.auto_url = self.base_url + '/v1/timeseries/1D/auto'
-
+		self.forecast1D_url = self.base_url + '/v1/timeseries/1D/forecast'
+		self.auto1D_url = self.base_url + '/v1/timeseries/1D/auto'
+		self.ts_trainND_url = self.base_url + '/v1/timeseries/nD/train'
+		self.ts_predictND_url = self.base_url + '/v1/timeseries/nD/predict'
 
 	def getData(self):
 		'''
@@ -63,7 +64,7 @@ class Datagami:
 			elif s > 20:
 				inc = 5
 			if counter > 1000:
-				raise requests.exceptions.Timeout('Sorry, job never completed')
+				raise requests.exceptions.Timeout('Sorry, job timedout')
 
 		return job_done
 
@@ -99,7 +100,37 @@ class Datagami:
 			self.data_type = list
 			return map(float, x)
 		else:
-			raise ValueError('Error: x must be a numpy array or a python list of floats')
+			raise ValueError('x must be a numpy array or a python list of floats')
+
+	def validateArrayND(self, x):
+		'''Sanity checks on nD timeseries. Must be a dictionary of lists or numpy arrays.'''
+		assert type(x) is dict
+		for k,v in x.iteritems():
+			# check column names
+			if type(k) is not str:
+				raise ValueError('x must be a dictionary with keys of type str.  Found %s.' % type(k))
+			# check consistency amongst columns
+			if type(v) is numpy.ndarray and self.data_type is None:
+				self.data_type = numpy.ndarray
+			elif type(x) is list and self.data_type is None:
+				self.data_type = list
+			elif self.data_type is not None:
+				if type(v) != self.data_type:
+					ValueError('All columns must be the same type.  Found %s and %s.' % (self.data_type, type(v)))
+			# turn columns into lists of floats
+			if type(v) is numpy.ndarray:
+				if len(x.shape) != 1:
+					raise ValueError('Column in data dictionary can only be a 1D arrray, found %s' % str(x.shape))
+				x[k] = v.tolist()
+			elif type(x) is list:
+				self.data_type = list
+				try:
+					x[k] = map(float, v)
+				except ValueError:
+					raise ValueError('Could not convert list element to float, in column %s' % k)
+			else:
+				raise ValueError('Columns must be numpy arrays or python lists of floats, found %s' % type(v))
+			return x
 
 	def validateKernel(self, k):
 		if type(k) is not str:
@@ -135,6 +166,7 @@ class TimeSeries1D(Datagami):
 		Datagami.__init__(self, username, token)
 
 		# sanity check on data array, converts numpy to python list
+		self.data_type = None
 		y = self.validateArray1D(x)
 
 		# upload timeseries data to the API
@@ -159,7 +191,7 @@ class TimeSeries1D(Datagami):
 
 		# post to forecast endpoint
 		params_dict = {'data_key': self.data_key, 'kernel': kernel, 'steps_ahead': n }
-		r = requests.post(self.forecast_url, data=params_dict)
+		r = requests.post(self.forecast1D_url, data=params_dict)
 		r.raise_for_status()
 
 		# get results from server, synchronous, ie poll and wait
@@ -196,7 +228,7 @@ class TimeSeries1D(Datagami):
 		params_dict = {'data_key': self.data_key, 'kernel_list': json.dumps(kernel_list), 'oos_window':n }
 
 		# post to the auto endpoint
-		r = requests.post(self.auto_url, data=params_dict)
+		r = requests.post(self.auto1D_url, data=params_dict)
 		r.raise_for_status()
 
 		# get results from server, synchronous, ie poll and wait
@@ -223,6 +255,116 @@ class TimeSeries1D(Datagami):
 		result_list.sort(key=lambda x: x['prediction_error'])
 
 		return result_list
+
+
+class TimeSeriesND(Datagami):
+	'''
+	Class to handle all ND timeseries models. Instances contain details about the API connection
+	and references to the uploaded data.  Methods on this object are: getData, getModel, train, and predict.
+
+	'''
+	def __init__(self, x, username='demo', token=''):
+		'''
+		Create a TimeSeriesND object from input data x.  Note, x must be a  
+		dictionary of numpy or list of floats, ie keys are names and values are column vectors.
+		'''
+		# authentication is handeld in parent's constructor
+		Datagami.__init__(self, username, token)
+
+		# sanity check on data array, converts numpy to python list
+		y = self.validateArrayND(x)
+
+		# upload timeseries data to the API
+		data_json = json.dumps(y)
+		r = requests.post(self.data_url, data={'data':data_json})
+		r.raise_for_status()
+		r_data = r.json()
+		if 'data_key' not in r_data:
+			raise requests.exceptions.RequestException(r_data)
+		self.data_key = r_data['data_key']
+		
+	
+	def train(self, predict_names, kernel='SE'):
+		'''
+		Fits a Gaussian Process model with the supplied kernel to input array x.  
+		The variables to predict are given by name in the argumet predict_names.
+		Returns a model_keydictionary of results: fit, fit_var, pred, pred_var.
+		See API documentation for details.
+		'''
+		# validation
+		assert(type(kernel) is str or type(kernel) is unicode)
+		assert(type(predict_names) is list or type(predict_names) is tuple)
+
+		# post to train endpoint
+		params_dict = {'data_key': self.data_key, 'kernel': kernel, 'predict_names': predict_names}
+		r = requests.post(self.ts_trainND_url, data=params_dict)
+		r.raise_for_status()
+
+		# get results from server, synchronous, ie poll and wait
+		result = self.poll_retrieve(r.json())
+
+		# store some values
+		self.model_key = result.model_key
+
+		# clean up object for return to user
+		result.pop('job_id', None)
+		result.pop('status', None)
+		result.pop('data_key', None)
+		result.pop('model_key', None)
+		result.pop('type', None)
+		result.pop('steps_ahead', None)
+
+		# return numpy if input was numpy 
+		if self.data_type is numpy.array :
+			for a in ['fit','fit_var','pred','pred_var']:
+				result[a] = numpy.array(result[a])
+
+		return result
+
+	def predict(self, newdata):
+		'''
+		Fits a Gaussian Process model with the supplied kernel to input array x.  
+		The variables to predict are given by name in the argumet predict_names.
+		Returns a model_keydictionary of results: fit, fit_var, pred, pred_var.
+		See API documentation for details.
+		'''
+		# validation
+		y = self.validateArrayND(newdata)
+
+		# upoload newdata
+		newdata_json = json.dumps(y)
+		r = requests.post(self.data_url, data={'data':newdata_json})
+		r.raise_for_status()
+		r_data = r.json()
+		if 'data_key' not in r_data:
+			raise requests.exceptions.RequestException(r_data)
+		self.newdata_key = r_data['data_key']
+
+		# post to train endpoint
+		params_dict = {'newdata_key': self.newdata_key, 'model_key': self.model_key}
+		r = requests.post(self.ts_predictND_url, data=params_dict)
+		r.raise_for_status()
+
+		# get results from server, synchronous, ie poll and wait
+		result = self.poll_retrieve(r.json())
+
+		# store some values
+		self.model_key = result.model_key
+
+		# clean up object for return to user
+		result.pop('job_id', None)
+		result.pop('status', None)
+		result.pop('data_key', None)
+		result.pop('model_key', None)
+		result.pop('type', None)
+		result.pop('steps_ahead', None)
+
+		# return numpy if input was numpy 
+		if self.data_type is numpy.array :
+			for a in ['fit','fit_var','pred','pred_var']:
+				result[a] = numpy.array(result[a])
+
+		return result
 
 
 
