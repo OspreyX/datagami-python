@@ -18,6 +18,7 @@ class Datagami:
 		Create a Datagami object which contains connection to API server
 		'''
 		self.base_url = 'http://beta.api.datagami.net'
+		# self.base_url = "http://localhost:8888"
 		self.data_url = self.base_url + '/v1/data'
 		self.model_url = self.base_url + '/v1/model'
 		self.forecast1D_url = self.base_url + '/v1/timeseries/1D/forecast'
@@ -70,15 +71,15 @@ class Datagami:
 
 	def poll_retrieve(self, job):
 		'''
-		Takes object returned by initial job submission, polls the jobs endpoint
+		Takes object returned by initial job submission, polls the model endpoint
 		until the calculation has finished, then retrieves the results object
 		'''
 		# store some relevant details
-		self.job_id = job['job_id']
+		# self.job_id = job['job_id']
 		self.model_key = job['model_key']
 
 		# poll for results
-		job_flag = self.poll(job['job_url'])
+		job_flag = self.poll(job['model_url'])
 		assert job_flag is True   # if poll() returned, it should have returned true
 
 		# get model details
@@ -198,7 +199,7 @@ class TimeSeries1D(Datagami):
 		result = self.poll_retrieve(r.json())
 
 		# clean up object for return to user
-		result.pop('job_id', None)
+		# result.pop('job_id', None)
 		result.pop('status', None)
 		result.pop('data_key', None)
 		result.pop('model_key', None)
@@ -238,7 +239,7 @@ class TimeSeries1D(Datagami):
 		self.model_keys = result['model_keys']
 
 		# clean up object for return to user
-		for k in ['job_id', 'status', 'data_key', 'model_keys', 'meta_key', 'oos_window', 'type', 'message']:
+		for k in ['status', 'data_key', 'model_keys', 'meta_key', 'oos_window', 'type', 'message']:
 			result.pop(k, None)
 
 		# turn results into a sorted list and return numpy if input was numpy
@@ -307,7 +308,7 @@ class TimeSeriesND(Datagami):
 		self.model_key = result.model_key
 
 		# clean up object for return to user
-		result.pop('job_id', None)
+		# result.pop('job_id', None)
 		result.pop('status', None)
 		result.pop('data_key', None)
 		result.pop('model_key', None)
@@ -352,7 +353,7 @@ class TimeSeriesND(Datagami):
 		self.model_key = result.model_key
 
 		# clean up object for return to user
-		result.pop('job_id', None)
+		# result.pop('job_id', None)
 		result.pop('status', None)
 		result.pop('data_key', None)
 		result.pop('model_key', None)
