@@ -25,18 +25,19 @@ x = np.arange(100)
 y1 = 0.2*x + np.sin(x/20) + np.random.normal(np.zeros(100))
 y2 = 0.3*y1 + np.random.normal(np.zeros(100)) 
 y3 = 0.1*y1**2 + np.random.normal(np.zeros(100)) 
+y4 = 0.5*y1**3 + np.random.normal(np.zeros(100)) 
 
-dat_train = {'a': y1[:-2], 'b': y2[:-2], 'c': y3[1:-1]}
+dat_train = {'a': y1[:-2], 'b': y2[:-2], 'd': y4[1:-1], 'c': y3[1:-1]}
 dat_test1 = {'a': y1[-2:-1], 'b': y2[-2:-1]} 
 dat_test2 = {'a': y1[-2:], 'b': y2[-2:]}
 
 
 print '---- nD setup -----'
-nD = datagami.TimeSeriesND(dat_train, url='local')
+nD = datagami.TimeSeriesND(dat_train, url='local', strict=True)
 
 
 print '---- nD res1 -----'
-res1 = nD.train(columns_to_predict='c', kernel='RQ')
+res1 = nD.train(columns_to_predict=['c','d'], kernel='RQ')
 
 pprint.pprint(res1, indent=4)
 
