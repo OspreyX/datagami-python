@@ -19,7 +19,7 @@ logger.setLevel(logging.INFO)
 
 class Datagami(object):
 
-	def __init__(self, username='demo', token='', url=None, unpack=None):
+	def __init__(self, username='demo', token='', url=None):
 		'''
 		Create a Datagami object which contains connection to API server
 		'''
@@ -31,14 +31,6 @@ class Datagami(object):
 		else:
 			raise ValueError("unknown url: %s" % url)
 
-		# for handling of return formats
-		if unpack is None:
-			self.unpack = True
-		elif type(unpack) is not bool:
-			raise ValueError("unpack must be a boolean, found %s" % type(unpack))
-		else:
-			self.unpack = unpack
-
 		self.data_url = self.base_url + '/v1/data'
 		self.model_url = self.base_url + '/v1/model'
 		self.forecast1D_url = self.base_url + '/v1/timeseries/1D/forecast'
@@ -49,7 +41,7 @@ class Datagami(object):
 		# for handling numpy arrays cleanly
 		self.data_type = None
 
-		logger.info("using url: %s" %  self.base_url)
+		# logger.info("using url: %s" %  self.base_url)
 
 	def getData(self):
 		'''
@@ -73,10 +65,8 @@ class Datagami(object):
 		counter = 0
 		s = 1 			# initial sleep interval
 		inc = 0.5  		# amount to increase interval each loop
-		logger.info('unpack %s' % self.unpack)
-		payload = { 'unpack': json.dumps(self.unpack) }
 		while True:
-			r = requests.get(self.base_url + url, params=payload)
+			r = requests.get(self.base_url + url)
 			resp = r.json()
 			if resp['status'] == 'SUCCESS':
 				job_done = True
@@ -110,8 +100,7 @@ class Datagami(object):
 			raise ValueError("Polling for model %s failed" % self.model_key)
 
 		# get model details
-		payload = { 'unpack': json.dumps(self.unpack) }
-		r = requests.get(self.base_url + job['model_url'], params=payload )
+		r = requests.get(self.base_url + job['model_url'])
 		r.raise_for_status()
 		result = r.json()
 
@@ -189,13 +178,13 @@ class TimeSeries1D(Datagami):
 	and references to the uploaded data.  Methods on this object are: getData, getModel, forecast, and auto.
 
 	'''
-	def __init__(self, x, username='demo', token='', url=None, unpack=None):
+	def __init__(self, x, username='demo', token='', url=None):
 		'''
 		Create a TimeSeries1D object from input data x. 
 		Currently, x must be a numpy array or a python list of floats.
 		'''
 		# authentication is handled in parent's constructor
-		Datagami.__init__(self, username, token, url, unpack)
+		Datagami.__init__(self, username, token, url)
 
 		# sanity check on data array, converts numpy to python list
 		self.data_type = None
@@ -289,13 +278,13 @@ class TimeSeriesND(Datagami):
 	and references to the uploaded data.  Methods on this object are: getData, getModel, train, and predict.
 
 	'''
-	def __init__(self, x, username='demo', token='', url=None, unpack=None):
+	def __init__(self, x, username='demo', token='', url=None):
 		'''
 		Create a TimeSeriesND object from input data x.  Note, x must be a  
 		dictionary of numpy or list of floats, ie keys are names and values are column vectors.
 		'''
 		# authentication is handeld in parent's constructor
-		Datagami.__init__(self, username, token, url, unpack)
+		Datagami.__init__(self, username, token, url)
 
 		# sanity check on data array, converts numpy to python list
 		y = self.validateArrayND(x)
@@ -412,22 +401,22 @@ class TimeSeriesND(Datagami):
 
 # TODO: authentication
 
-def forecast1D(x, k='SE', n=10, url=None, unpack=None):
+def forecast1D(x, k='SE', n=10, url=None):
 	'''
 	Forecast the 1D timeseries x for n steps ahead, using kernel k.
 	Currently, x must be a numpy array or a python list of floats.
 	'''
-	DG = TimeSeries1D(x, url=url, unpack=unpack)
+	DG = TimeSeries1D(x, url=url)
 	f = DG.forecast(k,n)
 	return f
 
-def auto1D(x, kl=['SE','RQ','SE + RQ'], n=10, url=None, unpack=None):
+def auto1D(x, kl=['SE','RQ','SE + RQ'], n=10, url=None):
 	'''
 	Train models with kernels in kl on timeseries x. 
 	Returns a list of models, ordered by prediction accuracy on last n values of x.  
 	Currently, x must be a numpy array or a python list of floats.
 	'''
-	DG = TimeSeries1D(x, url=url, unpack=unpack)
+	DG = TimeSeries1D(x, url=url)
 	f = DG.auto(kl, n)
 	return f
 

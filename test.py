@@ -19,20 +19,12 @@ pprint.pprint(dg, indent=4)
 
 print '============================================'
 print '----  1D  forecast 1 -----'
-dg = datagami.forecast1D(y, 'RQ', 1, url='local',unpack=True)
+dg = datagami.forecast1D(y, 'RQ', 1, url='local')
 
 dg.pop("fit", None)
 dg.pop("fit_variance", None)
 pprint.pprint(dg, indent=4)
 
-
-print '============================================'
-print '----  1D  forecast 1 unpack=False -----'
-dg = datagami.forecast1D(y, 'RQ', 1, url='local', unpack=False)
-
-dg.pop("fit", None)
-dg.pop("fit_variance", None)
-pprint.pprint(dg, indent=4)
 
 
 # res = datagami.auto1D(y, kl=["SE","RQ","SE + RQ","Lin*SE"], n=10, url='local')
@@ -60,7 +52,7 @@ nD = datagami.TimeSeriesND(dat_train, url='local')
 pprint.pprint(nD)
 
 print '============================================'
-print '---- nD train: not unpack -----'
+print '---- nD train  -----'
 res1 = nD.train(columns_to_predict=['c','d'], kernel='RQ')
 
 pprint.pprint(res1, indent=4)
@@ -84,21 +76,21 @@ print '----- nD setup: single target variable -----'
 dat_train = {'a': y1[:-2], 'b': y2[:-2], 'd': y4[:-2], 'c': y3[1:-1]}
 dat_test1 = {'a': y1[-2:-1], 'b': y2[-2:-1], 'd': y4[-2:-1]} 
 dat_test2 = {'a': y1[-2:], 'b': y2[-2:], 'd': y4[-2:]}
-nD = datagami.TimeSeriesND(dat_train, url='local', unpack=False)
+nD = datagami.TimeSeriesND(dat_train, url='local')
 
-print '---- nD train: unpack -----'
+print '---- nD train -----'
 res1 = nD.train(columns_to_predict='c', kernel='RQ')
 
 pprint.pprint(res1, indent=4)
 
-print '---- nD predict > 1: unpack -----'
+print '---- nD predict > 1 -----'
 res2 = nD.predict(dat_test2)
 
 res2.pop('fit', None)
 res2.pop('fit_variance', None)
 pprint.pprint(res2, indent=4)
 
-print '---- nD predict 1: unpack -----'
+print '---- nD predict 1 -----'
 res3 = nD.predict(dat_test1)
 
 res3.pop('fit', None)
