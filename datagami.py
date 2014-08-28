@@ -19,15 +19,25 @@ logger.setLevel(logging.INFO)
 
 class Datagami(object):
 
-	def __init__(self, username='demo', token='', url=None, strict=None):
+	def __init__(self, username='demo', token='', url=None, unpack=None):
 		'''
 		Create a Datagami object which contains connection to API server
 		'''
-
+		# sanity checks on url
 		if url is None:
 			self.base_url = 'http://beta.api.datagami.net'
 		elif url == 'local':
 			self.base_url = "http://localhost:8888"
+		else:
+			raise ValueError("unknown url: %s" % url)
+
+		# for handling of return formats
+		if unpack is None:
+			self.unpack = True
+		elif type(unpack) is not bool:
+			raise ValueError("unpack must be a boolean, found %s" % type(unpack))
+		else:
+			self.unpack = unpack
 
 		self.data_url = self.base_url + '/v1/data'
 		self.model_url = self.base_url + '/v1/model'
@@ -39,13 +49,7 @@ class Datagami(object):
 		# for handling numpy arrays cleanly
 		self.data_type = None
 
-		# for handling of return formats
-		if strict is None:
-			self.strict = False
-		elif type(strict) is not bool:
-			raise ValueError("strict must be a boolean, found %s" % type(strict))
-		else:
-			self.strict = strict
+		logger.info("using url: %s" %  self.base_url)
 
 	def getData(self):
 		'''
@@ -69,11 +73,10 @@ class Datagami(object):
 		counter = 0
 		s = 1 			# initial sleep interval
 		inc = 0.5  		# amount to increase interval each loop
+		logger.info('unpack %s' % self.unpack)
+		payload = { 'unpack': json.dumps(self.unpack) }
 		while True:
-			if self.strict:
-				r = requests.get(self.base_url + url, params={'strict':'True'})
-			else:
-				r = requests.get(self.base_url + url)
+			r = requests.get(self.base_url + url, params=payload)
 			resp = r.json()
 			if resp['status'] == 'SUCCESS':
 				job_done = True
@@ -107,7 +110,8 @@ class Datagami(object):
 			raise ValueError("Polling for model %s failed" % self.model_key)
 
 		# get model details
-		r = requests.get(self.base_url + job['model_url'])
+		payload = { 'unpack': json.dumps(self.unpack) }
+		r = requests.get(self.base_url + job['model_url'], params=payload )
 		r.raise_for_status()
 		result = r.json()
 
@@ -185,13 +189,13 @@ class TimeSeries1D(Datagami):
 	and references to the uploaded data.  Methods on this object are: getData, getModel, forecast, and auto.
 
 	'''
-	def __init__(self, x, username='demo', token='', url=None, strict=None):
+	def __init__(self, x, username='demo', token='', url=None, unpack=None):
 		'''
 		Create a TimeSeries1D object from input data x. 
 		Currently, x must be a numpy array or a python list of floats.
 		'''
-		# authentication is handeld in parent's constructor
-		Datagami.__init__(self, username, token, url, strict)
+		# authentication is handled in parent's constructor
+		Datagami.__init__(self, username, token, url, unpack)
 
 		# sanity check on data array, converts numpy to python list
 		self.data_type = None
@@ -229,7 +233,7 @@ class TimeSeries1D(Datagami):
 		# result.pop('job_id', None)
 		result.pop('status', None)
 		result.pop('data_key', None)
-		result.pop('model_key', None)
+		# result.pop('model_key', None)
 		result.pop('type', None)
 		result.pop('steps_ahead', None)
 
@@ -285,13 +289,13 @@ class TimeSeriesND(Datagami):
 	and references to the uploaded data.  Methods on this object are: getData, getModel, train, and predict.
 
 	'''
-	def __init__(self, x, username='demo', token='', url=None, strict=None):
+	def __init__(self, x, username='demo', token='', url=None, unpack=None):
 		'''
 		Create a TimeSeriesND object from input data x.  Note, x must be a  
 		dictionary of numpy or list of floats, ie keys are names and values are column vectors.
 		'''
 		# authentication is handeld in parent's constructor
-		Datagami.__init__(self, username, token, url, strict)
+		Datagami.__init__(self, username, token, url, unpack)
 
 		# sanity check on data array, converts numpy to python list
 		y = self.validateArrayND(x)
@@ -387,6 +391,7 @@ class TimeSeriesND(Datagami):
 		# clean up object for return to user
 		# result.pop('job_id', None)
 		result.pop('status', None)
+		result.pop('data_key', None)
 		result.pop('new_data_key', None)
 		result.pop('model_key', None)
 		result.pop('type', None)
@@ -407,22 +412,22 @@ class TimeSeriesND(Datagami):
 
 # TODO: authentication
 
-def forecast1D(x, k='SE', n=10, url=None):
+def forecast1D(x, k='SE', n=10, url=None, unpack=None):
 	'''
 	Forecast the 1D timeseries x for n steps ahead, using kernel k.
 	Currently, x must be a numpy array or a python list of floats.
 	'''
-	DG = TimeSeries1D(x, url=url)
+	DG = TimeSeries1D(x, url=url, unpack=unpack)
 	f = DG.forecast(k,n)
 	return f
 
-def auto1D(x, kl=['SE','RQ','SE + RQ'], n=10, url=None):
+def auto1D(x, kl=['SE','RQ','SE + RQ'], n=10, url=None, unpack=None):
 	'''
 	Train models with kernels in kl on timeseries x. 
 	Returns a list of models, ordered by prediction accuracy on last n values of x.  
 	Currently, x must be a numpy array or a python list of floats.
 	'''
-	DG = TimeSeries1D(x, url)
+	DG = TimeSeries1D(x, url=url, unpack=unpack)
 	f = DG.auto(kl, n)
 	return f
 
