@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/datagami/Python-Client.svg?branch=master)](https://travis-ci.org/datagami/Python-Client)
 
 Datagami API for Python
 =======================
