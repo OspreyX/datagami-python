@@ -10,7 +10,7 @@ y = np.sin(x*np.pi/10)*x*0.1 + np.random.normal(size=100)
 
 print '============================================'
 print '----  1D  forecast 10 -----'
-dg = datagami.forecast1D(y, 'RQ', 10, url='local')
+dg = datagami.forecast1D(y, 'RQ', 10)
 
 dg.pop("fit", None)
 dg.pop("fit_variance", None)
@@ -19,7 +19,7 @@ pprint.pprint(dg, indent=4)
 
 print '============================================'
 print '----  1D  forecast 1 -----'
-dg = datagami.forecast1D(y, 'RQ', 1, url='local')
+dg = datagami.forecast1D(y, 'RQ', 1)
 
 dg.pop("fit", None)
 dg.pop("fit_variance", None)
@@ -47,7 +47,7 @@ dat_test2 = {'a': y1[-2:], 'b': y2[-2:]}
 
 print '============================================'
 print '---- nD setup -----'
-nD = datagami.TimeSeriesND(dat_train, url='local')
+nD = datagami.TimeSeriesND(dat_train)
 
 pprint.pprint(nD)
 
