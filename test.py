@@ -76,7 +76,7 @@ print '----- nD setup: single target variable -----'
 dat_train = {'a': y1[:-2], 'b': y2[:-2], 'd': y4[:-2], 'c': y3[1:-1]}
 dat_test1 = {'a': y1[-2:-1], 'b': y2[-2:-1], 'd': y4[-2:-1]} 
 dat_test2 = {'a': y1[-2:], 'b': y2[-2:], 'd': y4[-2:]}
-nD = datagami.TimeSeriesND(dat_train, url='local')
+nD = datagami.TimeSeriesND(dat_train)
 
 print '---- nD train -----'
 res1 = nD.train(columns_to_predict='c', kernel='RQ')
