@@ -4,5 +4,5 @@ python:
 install: pip install -r requirements.txt
 notifications:
   slack:
-    secure: hHYCBWVDDKwAqPizGboX7dqeQsVNBJ31Q0Hr/mn+cBEf1nxcjq08FGG3SC2MBtWXBTFCbiOvQT9upR8r2TFIIj5wJ5OSzsTXGL1CmM3PyyMU5TcADjKM39ujElprYn1nEBQIRYCF11wmaRHhm8dVbHTl1Tmnm1DEDZmAjhIkzw0=
+    secure: GEI+Ic11TPEZHQZUgVR/fUUt/6YBgYqx8FAeWtWbSJmK8Nc+giY2UthPj5RL8UPs1e9O8gklqPJ/46ESVOSIjErv2HO9fstvHZ3AvMwbMUez33yzLtCDrlI6O9TQnkgwuA3DycEqEdWCdQ/59/Gqkk2SqEspNrcMED/O/QMO3RI=
 script: python test.py
