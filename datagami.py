@@ -8,8 +8,8 @@ import logging
 VERSION = '1.0.3'
 
 logger = logging.getLogger(__name__)
-FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(format=FORMAT)
+log_format = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
+logging.basicConfig(format=log_format)
 logger.setLevel(logging.INFO)
 
 # TODO: authentication
@@ -74,6 +74,7 @@ class Datagami(object):
             elif resp['status'] == 'FAILURE':
                 job_done = False
                 raise requests.exceptions.RequestException('Sorry, job failed')
+                # TODO return error message
             time.sleep(s)
             counter += 1
             s += inc
