@@ -32,6 +32,7 @@ class Datagami(object):
         if url is None:
             url = BETA_API_URL
 
+        self.base_url = url
         self.data_url = self.base_url + '/v1/data'
         self.model_url = self.base_url + '/v1/model'
         self.forecast1D_url = self.base_url + '/v1/timeseries/1D/forecast'
@@ -184,7 +185,7 @@ class TimeSeries1D(Datagami):
         Currently, x must be a numpy array or a python list of floats.
         '''
 
-        super(TimeSeriesND, self).__init_(username, token, url)
+        super(TimeSeries1D, self).__init__(username, token, url)
 
         # sanity check on data array, converts numpy to python list
         self.data_type = None
@@ -285,7 +286,7 @@ class TimeSeriesND(Datagami):
         dictionary of numpy or list of floats, ie keys are names and values are column vectors.
         '''
 
-        super(TimeSeriesND, self).__init_(username, token, url)
+        super(TimeSeriesND, self).__init__(self, username, token, url)
 
         # sanity check on data array, converts numpy to python list
         y = self.validateArrayND(x)
