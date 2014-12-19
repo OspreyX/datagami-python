@@ -20,7 +20,7 @@ logger.setLevel(logging.INFO)
 
 class Datagami(object):
 
-    def __init__(self, username='demo', token='', url=None):
+    def __init__(self, username, token, url=None):
         '''
         Create a Datagami object which contains connection to API server
         '''
@@ -31,6 +31,7 @@ class Datagami(object):
             self.base_url = "http://localhost:8888"
         else:
             raise ValueError("unknown url: %s" % url)
+        self.auth = (username, token)
 
         self.data_url = self.base_url + '/v1/data'
         self.model_url = self.base_url + '/v1/model'
@@ -50,7 +51,7 @@ class Datagami(object):
             self.data_key
         except AttributeError:
             raise NameError('data not defined')
-        r = requests.get(self.data_url + '/' + self.data_key)
+        r = requests.get(self.data_url + '/' + self.data_key, auth=self.auth)
         r.raise_for_status()
         data = r.json()['data']
         if self.data_type is numpy.ndarray:
@@ -65,7 +66,7 @@ class Datagami(object):
         s = 1           # initial sleep interval
         inc = 0.5       # amount to increase interval each loop
         while True:
-            r = requests.get(self.base_url + url)
+            r = requests.get(self.base_url + url, auth=self.auth)
             resp = r.json()
             if resp['status'] == 'SUCCESS':
                 job_done = True
@@ -99,7 +100,7 @@ class Datagami(object):
             raise ValueError("Polling for model %s failed" % self.model_key)
 
         # get model details
-        r = requests.get(self.base_url + job['url'])
+        r = requests.get(self.base_url + job['url'], auth=self.auth)
         r.raise_for_status()
         result = r.json()
 
@@ -178,7 +179,7 @@ class TimeSeries1D(Datagami):
 
     '''
 
-    def __init__(self, x, username='demo', token='', url=None):
+    def __init__(self, x, username, token, url=None):
         '''
         Create a TimeSeries1D object from input data x.
         Currently, x must be a numpy array or a python list of floats.
@@ -192,7 +193,7 @@ class TimeSeries1D(Datagami):
 
         # upload timeseries data to the API
         data_json = json.dumps(y)
-        r = requests.post(self.data_url, data={'data': data_json})
+        r = requests.post(self.data_url, data={'data': data_json}, auth=self.auth)
         r.raise_for_status()
         r_data = r.json()
         if 'data_key' not in r_data:
@@ -211,7 +212,7 @@ class TimeSeries1D(Datagami):
 
         # post to forecast endpoint
         params_dict = {'data_key': self.data_key, 'kernel': kernel, 'steps_ahead': n}
-        r = requests.post(self.forecast1D_url, data=params_dict)
+        r = requests.post(self.forecast1D_url, data=params_dict, auth=self.auth)
         r.raise_for_status()
 
         # get results from server, synchronous, ie poll and wait
@@ -247,7 +248,7 @@ class TimeSeries1D(Datagami):
         params_dict = {'data_key': self.data_key, 'kernel_list': json.dumps(kernel_list), 'oos_window': n}
 
         # post to the auto endpoint
-        r = requests.post(self.auto1D_url, data=params_dict)
+        r = requests.post(self.auto1D_url, data=params_dict, auth=self.auth)
         r.raise_for_status()
 
         # get results from server, synchronous, ie poll and wait
@@ -279,7 +280,7 @@ class TimeSeriesND(Datagami):
 
     '''
 
-    def __init__(self, x, username='demo', token='', url=None):
+    def __init__(self, x, username, token, url=None):
         '''
         Create a TimeSeriesND object from input data x.  Note, x must be a
         dictionary of numpy or list of floats, ie keys are names and values are column vectors.
@@ -292,7 +293,7 @@ class TimeSeriesND(Datagami):
 
         # upload timeseries data to the API
         data_json = json.dumps(y)
-        r = requests.post(self.data_url, data={'data': data_json})
+        r = requests.post(self.data_url, data={'data': data_json}, auth=self.auth)
         r.raise_for_status()
         r_data = r.json()
 
@@ -323,7 +324,7 @@ class TimeSeriesND(Datagami):
 
         # post to train endpoint
         params_dict = {'data_key': self.data_key, 'kernel': kernel, 'columns_to_predict': columns_to_predict}
-        r = requests.post(self.ts_trainND_url, data=params_dict)
+        r = requests.post(self.ts_trainND_url, data=params_dict, auth=self.auth)
         r.raise_for_status()
 
         # get results from server, synchronous, ie poll and wait
@@ -359,7 +360,7 @@ class TimeSeriesND(Datagami):
 
         # upoload newdata
         newdata_json = json.dumps(y)
-        r = requests.post(self.data_url, data={'data': newdata_json})
+        r = requests.post(self.data_url, data={'data': newdata_json}, auth=self.auth)
         r.raise_for_status()
         r_data = r.json()
         if 'data_key' not in r_data:
@@ -368,7 +369,7 @@ class TimeSeriesND(Datagami):
 
         # post to train endpoint
         params_dict = {'new_data_key': self.newdata_key, 'model_key': self.model_key}
-        r = requests.post(self.ts_predictND_url, data=params_dict)
+        r = requests.post(self.ts_predictND_url, data=params_dict, auth=self.auth)
         r.raise_for_status()
 
         # get results from server, synchronous, ie poll and wait
