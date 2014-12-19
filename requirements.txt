@@ -1,5 +1,2 @@
-
 requests==2.2.1
-
 numpy==1.9
-
