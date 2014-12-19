@@ -94,12 +94,12 @@ class Datagami(object):
         self.model_key = job['model_key']
 
         # poll for results
-        job_flag = self.poll(job['model_url'])
+        job_flag = self.poll(job['url'])
         if not job_flag:
             raise ValueError("Polling for model %s failed" % self.model_key)
 
         # get model details
-        r = requests.get(self.base_url + job['model_url'])
+        r = requests.get(self.base_url + job['url'])
         r.raise_for_status()
         result = r.json()
 
