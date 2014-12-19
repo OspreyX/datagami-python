@@ -400,25 +400,23 @@ class TimeSeriesND(Datagami):
 #  convenience methods
 # ----------------------------------------------------------------------------------------
 
-# TODO: authentication
-
-def forecast1D(x, k='SE', n=10, url=None):
+def forecast1D(x, username, token, k='SE', n=10, url=None):
     '''
     Forecast the 1D timeseries x for n steps ahead, using kernel k.
     Currently, x must be a numpy array or a python list of floats.
     '''
-    DG = TimeSeries1D(x, url=url)
+    DG = TimeSeries1D(x, username, token, url=url)
     f = DG.forecast(k, n)
     return f
 
 
-def auto1D(x, kl=['SE', 'RQ', 'SE + RQ'], n=10, url=None):
+def auto1D(x, username, token, kl=['SE', 'RQ', 'SE + RQ'], n=10, url=None):
     '''
     Train models with kernels in kl on timeseries x.
     Returns a list of models, ordered by prediction accuracy on last n values of x.
     Currently, x must be a numpy array or a python list of floats.
     '''
-    DG = TimeSeries1D(x, url=url)
+    DG = TimeSeries1D(x, username, token, url=url)
     f = DG.auto(kl, n)
     return f
 
