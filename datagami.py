@@ -42,7 +42,7 @@ class Datagami(object):
         # for handling numpy arrays cleanly
         self.data_type = None
 
-    def getData(self):
+    def get_data(self):
         '''
         Retrieve previously uploaded data
         '''
@@ -174,7 +174,7 @@ class TimeSeries1D(Datagami):
 
     '''
     Class to handle all 1D timeseries models. Instances contain details about the API connection
-    and references to the uploaded data.  Methods on this object are: getData, getModel, forecast, and auto.
+    and references to the uploaded data.  Methods on this object are: get_data, forecast, and auto.
 
     '''
 
@@ -275,7 +275,7 @@ class TimeSeriesND(Datagami):
 
     '''
     Class to handle all ND timeseries models. Instances contain details about the API connection
-    and references to the uploaded data.  Methods on this object are: getData, getModel, train, and predict.
+    and references to the uploaded data.  Methods on this object are: get_data, getModel, train, and predict.
 
     '''
 
