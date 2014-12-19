@@ -17,6 +17,8 @@ logger.setLevel(logging.INFO)
 # parent class
 # ----------------------------------------------------------------------------------------
 
+BETA_API_URL = 'http://beta.api.datagami.net'
+
 
 class Datagami(object):
 
@@ -24,14 +26,11 @@ class Datagami(object):
         '''
         Create a Datagami object which contains connection to API server
         '''
-        # sanity checks on url
-        if url is None:
-            self.base_url = 'http://beta.api.datagami.net'
-        elif url == 'local':
-            self.base_url = "http://localhost:8888"
-        else:
-            raise ValueError("unknown url: %s" % url)
+
         self.auth = (username, token)
+
+        if url is None:
+            url = BETA_API_URL
 
         self.data_url = self.base_url + '/v1/data'
         self.model_url = self.base_url + '/v1/model'
