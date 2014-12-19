@@ -183,8 +183,8 @@ class TimeSeries1D(Datagami):
         Create a TimeSeries1D object from input data x.
         Currently, x must be a numpy array or a python list of floats.
         '''
-        # authentication is handled in parent's constructor
-        Datagami.__init__(self, username, token, url)
+
+        super(TimeSeriesND, self).__init_(username, token, url)
 
         # sanity check on data array, converts numpy to python list
         self.data_type = None
@@ -284,8 +284,8 @@ class TimeSeriesND(Datagami):
         Create a TimeSeriesND object from input data x.  Note, x must be a
         dictionary of numpy or list of floats, ie keys are names and values are column vectors.
         '''
-        # authentication is handeld in parent's constructor
-        Datagami.__init__(self, username, token, url)
+
+        super(TimeSeriesND, self).__init_(username, token, url)
 
         # sanity check on data array, converts numpy to python list
         y = self.validateArrayND(x)
