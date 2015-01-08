@@ -15,7 +15,15 @@ class TimeseriesMixin(object):
         full_response = self.poll(model_url)
 
         # Return simpler representation
-        keys = ('fit', 'fit_variance', 'predicted', 'predicted_variance', 'log_likelihood', 'parameters')
+        keys = (
+            'fit',
+            'fit_variance',
+            'predicted',
+            'predicted_variance',
+            'log_likelihood',
+            'parameters',
+            'kernel'
+        )
         response = {k: full_response[k] for k in keys}
 
         return response
