@@ -19,7 +19,8 @@ For some types of model one or more of these steps are combined in convenience m
 ### Linear forecast
 
 ```python
-forecast = datagami.forecast1D(range(100), '<api_key>', '<api_secret>', kernel='SE', steps_ahead=10)
+data = range(100)
+forecast = datagami.forecast1D(data, '<key>', '<secret>', kernel='SE', steps_ahead=10)
 print forecast['predicted']
 ```
 
