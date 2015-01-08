@@ -1,8 +1,20 @@
 language: python
+
 python:
 - '2.7'
-install: pip install -r requirements.txt
+
+install:
+- pip install -r requirements.txt
+- pip install -r test_requirements.txt
+
 notifications:
   slack:
     secure: GEI+Ic11TPEZHQZUgVR/fUUt/6YBgYqx8FAeWtWbSJmK8Nc+giY2UthPj5RL8UPs1e9O8gklqPJ/46ESVOSIjErv2HO9fstvHZ3AvMwbMUez33yzLtCDrlI6O9TQnkgwuA3DycEqEdWCdQ/59/Gqkk2SqEspNrcMED/O/QMO3RI=
-script: python test.py
+
+script: nosetests --with-yanc -v
+
+env:
+  global:
+  - TEST_API_URL=http://develop-api.datagami.net/
+  - TEST_API_KEY=travis
+  - secure: "BZkxvgQBh7vkAH7y566CvAlQtJ2EnbOncNU0PXE7eIO/kKXwG1IvY2sVrt9s669s8bQ0UEaf8ZKOdK3UVfeUt/a+oaCuh+/m3Zb02ayYzpdyfPmDVUwo7efIhYwHWwLEQLAkHrVb7sK5z03aJB4kU1wzd3GKwVbKe1uY6IOk8tY="
