@@ -18,6 +18,17 @@ class DatagamiException(IOError):
 
         super(DatagamiException, self).__init__(*args, **kwargs)
 
+    def __str__(self):
+        msg = self.args[0]
+
+        if self.response:
+            error_message = self.response.get('message')
+
+            if error_message:
+                msg = '{}: {}'.format(msg, error_message)
+
+        return msg
+
 
 class ConnectionError(DatagamiException, requests.exceptions.ConnectionError):
     """
@@ -30,17 +41,6 @@ class ConnectionError(DatagamiException, requests.exceptions.ConnectionError):
 class ValidationError(DatagamiException, ValueError):
     """ Something was wrong with your request """
     pass
-
-    def __str__(self):
-        msg = self.args[0]
-
-        if self.response:
-            error_message = self.response.get('message')
-
-            if error_message:
-                msg = '{}: {}'.format(msg, error_message)
-
-        return msg
 
 
 class JobFailedError(DatagamiException, ValueError):
@@ -75,3 +75,9 @@ def handle_error():
 
         elif code == 404:
             raise NotFound('Not Found', response=e.response.json())
+
+        elif code == 500:
+            raise DatagamiException('Server error', response=e.response.json())
+
+        else:
+            raise
