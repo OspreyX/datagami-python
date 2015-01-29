@@ -5,7 +5,7 @@ import json
 KEY = os.environ.get('TEST_API_KEY')
 SECRET = os.environ.get('TEST_API_SECRET')
 
-
+# House price data from Stanford Machine Learning course exercise 3
 with open('tests/regression_house_prices.json', 'r') as f:
     data = json.load(f)
 
