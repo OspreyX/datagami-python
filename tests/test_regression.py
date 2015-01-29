@@ -15,7 +15,7 @@ new_data = {
 }
 
 
-def test_regression_train():
+def test_regression():
 
     d = datagami.Datagami(KEY, SECRET)
     data_key = d.upload_data(data)
@@ -50,4 +50,3 @@ def test_regression_convenience():
     predicted_house_price = prediction['predicted'][0]
     print 'house price prediction:', predicted_house_price
     assert 290000 < predicted_house_price < 300000
-
