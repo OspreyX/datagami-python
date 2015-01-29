@@ -9,13 +9,13 @@ from .exceptions import (
     handle_error
 )
 
-from .mixins import TimeseriesMixin, RegressionMixin
+from .mixins import TimeseriesMixin, RegressionMixin, ClassificationMixin
 
 
 API_URL = 'https://api.datagami.net'
 
 
-class Datagami(TimeseriesMixin, RegressionMixin):
+class Datagami(TimeseriesMixin, RegressionMixin, ClassificationMixin):
 
     def __init__(self, username, token, url=None):
 

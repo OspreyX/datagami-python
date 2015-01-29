@@ -53,6 +53,30 @@ def regression(key, secret, data, new_data, column_to_predict, **training_kwargs
 
     return prediction
 
+
+def classification(key, secret, data, new_data, column_to_predict, **training_kwargs):
+
+    d = Datagami(key, secret)
+
+    # Upload training data
+    data_key = d.upload_data(data)
+
+    # Train model
+    classification_data = d.classification_train(
+        data_key,
+        column_to_predict,
+        **training_kwargs
+    )
+    model_key = classification_data['model_key']
+
+    # Upload new data
+    new_data_key = d.upload_data(new_data)
+
+    # Make prediction
+    prediction = d.classification_predict(model_key, new_data_key)
+
+    return prediction
+
 # def summarise(res, top=5):
 #     """
 #     Extracts list of kernel, prediction_error pairs from results of auto1D
