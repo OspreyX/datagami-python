@@ -1,6 +1,5 @@
 class TimeseriesMixin(object):
 
-    # Timeseries
     def timeseries_1D_forecast(self, data_key, kernel='SE', steps_ahead=10):
 
         data = {
@@ -47,12 +46,6 @@ class TimeseriesMixin(object):
         full_response = self.poll(model_url)
 
         return full_response
-
-        # # Return simpler representation
-        # models = response['models']
-        # response = {}
-
-        # return response
 
 
 # ----------------------------------------------------------------------------------------

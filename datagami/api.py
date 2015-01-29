@@ -4,16 +4,18 @@ import urlparse
 import requests
 import requests.api
 
-from .timeseries import TimeseriesMixin
 from .exceptions import (
     JobFailedError, NotFound, ValidationError,
     handle_error
 )
 
+from .mixins import TimeseriesMixin, RegressionMixin
+
+
 API_URL = 'https://api.datagami.net'
 
 
-class Datagami(TimeseriesMixin):
+class Datagami(TimeseriesMixin, RegressionMixin):
 
     def __init__(self, username, token, url=None):
 
