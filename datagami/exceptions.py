@@ -22,10 +22,10 @@ class DatagamiException(IOError):
         msg = self.args[0]
 
         if self.response:
-            error_message = self.response.get('message')
+            message = self.response.get('message', '')
+            error = self.response.get('error', '')
 
-            if error_message:
-                msg = '{}: {}'.format(msg, error_message)
+            msg = ': '.join([msg, message, error])
 
         return msg
 
