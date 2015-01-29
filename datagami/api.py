@@ -72,7 +72,7 @@ class Datagami(TimeseriesMixin, RegressionMixin):
         except NotFound:
             return False
 
-    def get_model(self, model_key, poll=True):
+    def get_model(self, model_key):
         """ Poll model, fetch from API when status is SUCCESS """
 
         model_url = '/v1/model/{}'.format(model_key)
