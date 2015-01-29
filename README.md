@@ -44,7 +44,7 @@ Outputs:
 ```python
 t = np.arange(100)
 sine = 0.1*t + np.sin(t/3) + np.random.normal(t.size)
-forecast = datagami.forecast1D(list(sine), '<api_key>', '<api_secret>', kernel='SE', steps_ahead=10)
+forecast = datagami.forecast1D(list(sine), '<key>', '<secret>', kernel='SE', steps_ahead=10)
 print forecast
 ```
 

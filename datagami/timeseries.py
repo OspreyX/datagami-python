@@ -1,4 +1,3 @@
-
 class TimeseriesMixin(object):
 
     # Timeseries
