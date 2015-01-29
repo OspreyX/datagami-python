@@ -3,6 +3,7 @@ class ClassificationMixin(object):
     def classification_train(
             self, data_key, column_to_predict,
             distribution='bernoulli', num_trees=500, depth=1, rate=0.01, cv=2):
+        """ Train a classification model """
 
         data = {
             'data_key': data_key,
@@ -22,6 +23,7 @@ class ClassificationMixin(object):
         return response
 
     def classification_predict(self, model_key, new_data_key):
+        """ Make a classification prediction """
 
         data = {
             'model_key': model_key,

@@ -1,6 +1,9 @@
+""" Convenience methods """
+
+import logging
 from .api import Datagami
 
-""" Convenience methods """
+logger = logging.getLogger(__name__)
 
 
 def forecast1D(key, secret, data, kernel='SE', steps_ahead=10):
@@ -37,19 +40,24 @@ def regression(key, secret, data, new_data, column_to_predict, **training_kwargs
     data_key = d.upload_data(data)
 
     # Train model
+    logger.debug('Training a regression model')
     regression_data = d.regression_train(
         data_key,
         column_to_predict,
         **training_kwargs
     )
-
+    logger.debug('Regression model:')
+    logger.debug(regression_data)
     model_key = regression_data['model_key']
 
     # Upload new data
     new_data_key = d.upload_data(new_data)
 
     # Make prediction
+    logger.debug('Predicting')
     prediction = d.regression_predict(model_key, new_data_key)
+    logger.debug('Prediction:')
+    logger.debug(prediction)
 
     return prediction
 
@@ -62,18 +70,24 @@ def classification(key, secret, data, new_data, column_to_predict, **training_kw
     data_key = d.upload_data(data)
 
     # Train model
+    logger.debug('Training a classification model')
     classification_data = d.classification_train(
         data_key,
         column_to_predict,
         **training_kwargs
     )
+    logger.debug('Classification model:')
+    logger.debug(classification_data)
     model_key = classification_data['model_key']
 
     # Upload new data
     new_data_key = d.upload_data(new_data)
 
     # Make prediction
+    logger.debug('Predicting')
     prediction = d.classification_predict(model_key, new_data_key)
+    logger.debug('Prediction:')
+    logger.debug(prediction)
 
     return prediction
 
