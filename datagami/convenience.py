@@ -3,7 +3,7 @@ from .api import Datagami
 """ Convenience methods """
 
 
-def forecast1D(data, key, secret, kernel='SE', steps_ahead=10):
+def forecast1D(key, secret, data, kernel='SE', steps_ahead=10):
     """
     Forecast the 1D timeseries x for n steps ahead, using kernel k.
     Currently, x must be a numpy array or a python list of floats.
@@ -14,7 +14,7 @@ def forecast1D(data, key, secret, kernel='SE', steps_ahead=10):
     return forecast
 
 
-def auto1D(data, key, secret, kernel_list=None, out_of_sample_size=10):
+def auto1D(key, secret, data, kernel_list=None, out_of_sample_size=10):
     """
     Train models with kernels in kl on timeseries x.
     Returns a list of models, ordered by prediction accuracy on last n values of x.
@@ -28,6 +28,30 @@ def auto1D(data, key, secret, kernel_list=None, out_of_sample_size=10):
     forecast = d.timeseries_1D_forecast(data_key, kernel_list, out_of_sample_size)
     return forecast
 
+
+def regression(key, secret, data, new_data, column_to_predict, **training_kwargs):
+
+    d = Datagami(key, secret)
+
+    # Upload training data
+    data_key = d.upload_data(data)
+
+    # Train model
+    regression_data = d.regression_train(
+        data_key,
+        column_to_predict,
+        **training_kwargs
+    )
+
+    model_key = regression_data['model_key']
+
+    # Upload new data
+    new_data_key = d.upload_data(new_data)
+
+    # Make prediction
+    prediction = d.regression_predict(model_key, new_data_key)
+
+    return prediction
 
 # def summarise(res, top=5):
 #     """

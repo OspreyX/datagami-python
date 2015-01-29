@@ -20,7 +20,7 @@ For some types of model one or more of these steps are combined in convenience m
 
 ```python
 data = range(100)
-forecast = datagami.forecast1D(data, '<key>', '<secret>', kernel='Lin', steps_ahead=10)
+forecast = datagami.forecast1D('<key>', '<secret>', data, kernel='Lin', steps_ahead=10)
 print forecast['predicted']
 ```
 
@@ -44,7 +44,7 @@ Outputs:
 ```python
 t = np.arange(100)
 sine = 0.1*t + np.sin(t/3) + np.random.normal(t.size)
-forecast = datagami.forecast1D(list(sine), '<key>', '<secret>', kernel='SE', steps_ahead=10)
+forecast = datagami.forecast1D('<key>', '<secret>', list(sine), kernel='SE', steps_ahead=10)
 print forecast
 ```
 

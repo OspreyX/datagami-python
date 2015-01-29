@@ -1,7 +1,8 @@
 from .api import Datagami
 from .convenience import (
     forecast1D,
-    auto1D
+    auto1D,
+    regression
 )
 
 __title__ = 'datagami'
