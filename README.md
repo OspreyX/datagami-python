@@ -20,23 +20,23 @@ For some types of model one or more of these steps are combined in convenience m
 
 ```python
 data = range(100)
-forecast = datagami.forecast1D(data, '<key>', '<secret>', kernel='SE', steps_ahead=10)
+forecast = datagami.forecast1D(data, '<key>', '<secret>', kernel='Lin', steps_ahead=10)
 print forecast['predicted']
 ```
 
 Outputs:
 
 ```
-[99.9999421603053,
- 100.999908715454,
- 101.999865731187,
- 102.99981145042,
- 103.999743922717,
- 104.999660939268,
- 105.99956004725,
- 106.999438486498,
- 107.999293221589,
- 108.999120848966]
+[99.9999999999655,
+ 100.999999999942,
+ 101.999999999986,
+ 102.999999999945,
+ 103.999999999971,
+ 104.999999999953,
+ 105.999999999976,
+ 106.999999999961,
+ 107.999999999962,
+ 108.999999999974]
 ```
 
 ### Noisy sine curve
