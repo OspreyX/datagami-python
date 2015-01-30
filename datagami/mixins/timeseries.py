@@ -1,6 +1,7 @@
 class TimeseriesMixin(object):
 
     def timeseries_1D_forecast(self, data_key, kernel='SE', steps_ahead=10):
+        """ Forecast a one dimensional timeseries """
 
         data = {
             'data_key': data_key,
@@ -47,129 +48,27 @@ class TimeseriesMixin(object):
 
         return full_response
 
+    def timeseries_ND_train(self, data_key, columns_to_predict, kernel='SE'):
 
-# ----------------------------------------------------------------------------------------
+        data = {
+            'data_key': data_key,
+            'columns_to_predict': columns_to_predict,
+            'kernel': kernel
+        }
+        r = self._post('/v1/timeseries/nD/train', data)
 
+        model_url = r.json()['url']
+        response = self.poll(model_url)
+        return response
 
-# class TimeSeriesND(Datagami):
+    def timeseries_ND_predict(self, model_key, new_data_key):
 
-#     '''
-#     Class to handle all ND timeseries models. Instances contain details about the API connection
-#     and references to the uploaded data.  Methods on this object are: get_data, getModel, train, and predict.
+        data = {
+            'model_key': model_key,
+            'new_data_key': new_data_key
+        }
+        r = self._post('/v1/timeseries/nD/predict', data)
 
-#     '''
-
-#     def __init__(self, x, username, token, url=None):
-#         '''
-#         Create a TimeSeriesND object from input data x.  Note, x must be a
-#         dictionary of numpy or list of floats, ie keys are names and values are column vectors.
-#         '''
-
-#         super(TimeSeriesND, self).__init__(self, username, token, url)
-
-#         # sanity check on data array, converts numpy to python list
-#         y = self.validateArrayND(x)
-
-#         # upload timeseries data to the API
-#         data_json = json.dumps(y)
-#         r = requests.post(self.data_url, data={'data': data_json}, auth=self.auth)
-#         r.raise_for_status()
-#         r_data = r.json()
-
-#         if 'data_key' not in r_data:
-#             raise requests.exceptions.RequestException(r_data)
-
-#         self.data_key = r_data['data_key']
-
-#     def train(self, columns_to_predict, kernel='SE'):
-#         '''
-#         Fits a Gaussian Process model with the supplied kernel to input array x.
-#         The variables to predict are given by name in the argumet columns_to_predict.
-#         Returns a model_keydictionary of results: fit, fit_variance, predicted, predicted_variance.
-#         See API documentation for details.
-#         '''
-#         # validation
-#         if type(kernel) not in (str, unicode):
-#             raise ValueError("kernel must be text (string or unicode).  Found %s" % type(kernel))
-
-#         if type(columns_to_predict) in (str, unicode):
-#             columns_to_predict = [columns_to_predict]
-#         elif type(columns_to_predict) not in (tuple, list):
-#             raise ValueError("columns_to_predict must be a single text or tuple/list of text")
-#         elif type(columns_to_predict) in (tuple, list):
-#             if not all([type(s) in (str, unicode) for s in columns_to_predict]):
-#                 raise ValueError("columns_to_predict must contain only text or unicode")
-#         columns_to_predict = json.dumps(columns_to_predict)
-
-#         # post to train endpoint
-#         params_dict = {'data_key': self.data_key, 'kernel': kernel, 'columns_to_predict': columns_to_predict}
-#         r = requests.post(self.ts_trainND_url, data=params_dict, auth=self.auth)
-#         r.raise_for_status()
-
-#         # get results from server, synchronous, ie poll and wait
-#         result = self.poll_retrieve(r.json())
-
-#         # store some values
-#         self.model_key = result['model_key']
-
-#         # clean up object for return to user
-#         # result.pop('job_id', None)
-#         result.pop('status', None)
-#         result.pop('data_key', None)
-#         result.pop('model_key', None)
-#         result.pop('type', None)
-#         result.pop('steps_ahead', None)
-
-#         # return numpy if input was numpy
-#         if self.data_type is numpy.array:
-#             for a in ['fit', 'fit_variance', 'predicted', 'predicted_variance']:
-#                 result[a] = numpy.array(result[a])
-
-#         return result
-
-#     def predict(self, newdata):
-#         '''
-#         Fits a Gaussian Process model with the supplied kernel to input array x.
-#         The variables to predict are given by name in the argumet columns_to_predict.
-#         Returns a model_keydictionary of results: fit, fit_var, pred, pred_var.
-#         See API documentation for details.
-#         '''
-#         # validation
-#         y = self.validateArrayND(newdata)
-
-#         # upoload newdata
-#         newdata_json = json.dumps(y)
-#         r = requests.post(self.data_url, data={'data': newdata_json}, auth=self.auth)
-#         r.raise_for_status()
-#         r_data = r.json()
-#         if 'data_key' not in r_data:
-#             raise requests.exceptions.RequestException(r_data)
-#         self.newdata_key = r_data['data_key']
-
-#         # post to train endpoint
-#         params_dict = {'new_data_key': self.newdata_key, 'model_key': self.model_key}
-#         r = requests.post(self.ts_predictND_url, data=params_dict, auth=self.auth)
-#         r.raise_for_status()
-
-#         # get results from server, synchronous, ie poll and wait
-#         result = self.poll_retrieve(r.json())
-
-#         # store some values
-#         self.model_key = result['model_key']
-
-#         # clean up object for return to user
-#         # result.pop('job_id', None)
-#         result.pop('status', None)
-#         result.pop('data_key', None)
-#         result.pop('new_data_key', None)
-#         result.pop('model_key', None)
-#         result.pop('type', None)
-#         result.pop('message', None)
-
-#         # return numpy if input was numpy
-#         if self.data_type is numpy.array:
-#             for a in ['fit', 'fit_variance', 'predicted', 'predicted_variance']:
-#                 result[a] = numpy.array(result[a])
-
-#         return result
-
+        model_url = r.json()['url']
+        response = self.poll(model_url)
+        return response

@@ -3,7 +3,8 @@ from .convenience import (
     forecast1D,
     auto1D,
     regression,
-    classification
+    classification,
+    timeseries_ND
 )
 
 __title__ = 'datagami'

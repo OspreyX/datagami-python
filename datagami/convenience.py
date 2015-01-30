@@ -91,6 +91,37 @@ def classification(key, secret, data, new_data, column_to_predict, **training_kw
 
     return prediction
 
+
+def timeseries_ND(key, secret, data, new_data, columns_to_predict, kernel='SE'):
+
+    d = Datagami(key, secret)
+
+    # Upload training data
+    data_key = d.upload_data(data)
+
+    # Train model
+    logger.debug('Training a timeseries ND model')
+    model_data = d.timeseries_ND_train(
+        data_key,
+        columns_to_predict,
+        kernel
+    )
+    logger.debug('Timeseries ND model:')
+    logger.debug(model_data)
+    model_key = model_data['model_key']
+
+    # Upload new data
+    new_data_key = d.upload_data(new_data)
+
+    # Make prediction
+    logger.debug('Predicting')
+    prediction = d.timeseries_ND_predict(model_key, new_data_key)
+    logger.debug('Prediction:')
+    logger.debug(prediction)
+
+    return prediction
+
+
 # def summarise(res, top=5):
 #     """
 #     Extracts list of kernel, prediction_error pairs from results of auto1D
