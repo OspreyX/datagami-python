@@ -1,19 +1,11 @@
 import os
 import json
 import datagami
+from .utils import assert_list_almost_equals
+
 
 KEY = os.environ.get('TEST_API_KEY')
 SECRET = os.environ.get('TEST_API_SECRET')
-
-
-def almost_equal(a, b, tol):
-    return abs(a - b) <= max(abs(a), abs(b)) * tol
-
-
-def assert_list_equals(actual, expected, tol=1.e-8):
-    for v1, v2 in zip(actual, expected):
-        if not almost_equal(v1, v2, tol):
-            return False
 
 
 def test_timeseries_nd():
@@ -37,7 +29,7 @@ def test_timeseries_nd():
         kernel='RQ'
     )
 
-    assert_list_equals(
+    assert_list_almost_equals(
         forecast['predicted']['GDP'],
         [
             16462.9920306713,
@@ -51,7 +43,7 @@ def test_timeseries_nd():
         ]
     )
 
-    assert_list_equals(
+    assert_list_almost_equals(
         forecast['predicted']['PAYEM'],
         [
             134693.104651942,
