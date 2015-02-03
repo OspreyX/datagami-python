@@ -122,6 +122,26 @@ def timeseries_ND(key, secret, data, new_data, columns_to_predict, kernel='SE'):
     return prediction
 
 
+def keywords(key, secret, data, method='lsi', num_topics=20, exclude_words=None):
+
+    d = Datagami(key, secret)
+
+    # Upload training data
+    data_key = d.upload_data(data)
+
+    # Train model
+    logger.debug('Extracting keywords from text')
+    model_data = d.text_keywords(
+        data_key,
+        method=method,
+        num_topics=num_topics,
+        exclude_words=exclude_words
+    )
+    logger.debug('Text keywords:')
+    logger.debug(model_data)
+    keywords = model_data['keywords']
+    return keywords
+
 # def summarise(res, top=5):
 #     """
 #     Extracts list of kernel, prediction_error pairs from results of auto1D

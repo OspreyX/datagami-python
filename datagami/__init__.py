@@ -4,7 +4,8 @@ from .convenience import (
     auto1D,
     regression,
     classification,
-    timeseries_ND
+    timeseries_ND,
+    keywords
 )
 
 __title__ = 'datagami'
