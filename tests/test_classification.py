@@ -32,4 +32,4 @@ def test_classification_convenience():
 
     prediction = datagami.classification(KEY, SECRET, data, new_data, 'z', **training_params)
 
-    assert prediction['predicted_class_id'] == [1, 1, 0, 0, 1, 0, 0, 1, 1]
+    assert prediction['predicted_classes'] == [1, 1, 0, 0, 1, 0, 0, 1, 1]
