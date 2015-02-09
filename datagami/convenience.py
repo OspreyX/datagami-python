@@ -28,7 +28,7 @@ def auto1D(key, secret, data, kernel_list=None, out_of_sample_size=10):
 
     d = Datagami(key, secret)
     data_key = d.upload_data(data)
-    forecast = d.timeseries_1D_forecast(data_key, kernel_list, out_of_sample_size)
+    forecast = d.timeseries_1D_auto(data_key, kernel_list, out_of_sample_size)
     return forecast
 
 
