@@ -30,7 +30,7 @@ def test_keywords_convenience():
     top_5 = sorted_keywords[:5]
     top_5_words = zip(*top_5)[0]
 
-    top_10_words = ('yummy', 'love', 'loved', 'kid', 'tasted', 'delicious', 'awesome', 'amazing', 'great', 'sweet')
+    top_10_words = ('yummy', 'love love', 'loved', 'taste', 'love', 'good', 'great', 'best', 'tasted', 'crunchy')
 
     for word in top_5_words:
         assert_in(word, top_10_words)
