@@ -1,18 +1,24 @@
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+import os
+from setuptools import setup, find_packages
+
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
 
 setup(
     name='datagami-python',
     version='0.0.1',
     author='Datagami',
     author_email='hello@datagami.info',
-    packages=['datagami'],
-    install_requires=['simplejson'],
+    packages=find_packages(),
+    install_requires=[
+        'requests',
+        'simplejson'
+    ],
     url='https://github.com/datagami/datagami-python',
     description='Datagami library for Python',
-    long_description=open('README.md').read(),
+    long_description=read('README.md'),
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
