@@ -9,6 +9,7 @@ setup(
     author='Datagami',
     author_email='hello@datagami.info',
     packages=['datagami'],
+    install_requires=['simplejson'],
     url='https://github.com/datagami/datagami-python',
     description='Datagami library for Python',
     long_description=open('README.md').read(),
