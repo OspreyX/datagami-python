@@ -24,7 +24,7 @@ def test_keywords_convenience():
     sorted_keywords = sorted(keywords.items(), key=lambda x: x[1], reverse=True)
 
     # Expect around 54 keywords
-    assert 50 < len(keywords) < 60
+    assert 50 < len(keywords) < 70
 
     # Check top 5 keywords
     top_5 = sorted_keywords[:5]
