@@ -77,11 +77,15 @@ class Datagami(TimeseriesMixin, RegressionMixin, ClassificationMixin, TextMixin)
         except NotFound:
             return False
 
-    def get_model(self, model_key):
+    def get_model(self, model_key, poll=True):
         """ Poll model, fetch from API when status is SUCCESS """
 
         model_url = '/v1/model/{}'.format(model_key)
-        return self.poll(model_url)
+
+        if poll:
+            return self.poll(model_url)
+        else:
+            return self._get(model_url).json()
 
     def poll(self, url, max_tries=1000):
         """ Poll given url until returned status is SUCCESS, then return response """
